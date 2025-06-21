@@ -1,0 +1,41 @@
+apiVersion: v2           #  This specifies the Helm chart API version.
+
+
+name: mychartPlugins
+description: all the plugins that this chart contains: JDK, OWSAP Dependency Check, SonarQube, and Nodejs.
+
+
+# type: declares the chart type (application or library).Why application: Because this chart deploys services or tools, not reusable templates (which is what library is for).
+type: application
+
+
+# version: The Helm chart version. Why this matters: Helm uses it to version your chart logic, not the app. Example: if you fix a typo in values.yaml, you bump this version.
+version: 0.1.0
+
+
+# appVersion: The version of the application(s) your chart installs. Why this matters: It’s metadata, shown in helm list, helm show chart. Example: you could bump this to match the JDK version or toolset version inside the pod.
+appVersion: "1.0.0"
+
+
+# maintainers: optional info about who maintains this chart. Why it helps: For sharing charts on GitHub or Helm Hub, so others know who to contact.
+maintainers:
+  - name: Walaa Hijazi
+    email: walaa.25.11@hotmail.com
+    url: https://github.com/WalaaHijazi1
+    
+
+
+keywords:
+  - jdk
+  - nodejs
+  - owasp
+  - sonarqube
+  - devops
+  - plugins
+  - tools
+  - security
+  - scanner
+  
+  
+# home: link to the project source code or documentation. Why: Best practice for open source sharing or team collaboration.
+home: https://github.com/walaahijazi/CI-CD_DevOps_Project

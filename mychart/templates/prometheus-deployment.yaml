@@ -1,0 +1,56 @@
+apiVersion: apps/v1  # This version for deployment.
+
+# A Deployment is a Kubernetes object that:
+# Ensures a specified number of pod replicas are running.
+# Manages rolling updates.
+# Restarts failed pods automatically.
+# Provides declarative updates to your applications.
+
+
+kind: Deployment
+metadata:
+  name: {{ .Release.Name | lower }}-prometheus           # Helm templating: the name of the release
+spec:
+  replicas: 1                                   # one prometheus pod running.
+  
+  # Tells the Deployment which Pods to manage  only those with label app: prometheus.
+  
+  selector:
+    matchLabels:
+      app: prometheus
+  
+  # This defines the template for the Pods that the Deployment creates.
+  # These labels must match the selector above.
+  # Useful for selecting pods using kubectl or for Service selectors, It makes a connection between the service and the pod.
+  
+  template:
+    metadata:
+      labels: { app: prometheus }
+  
+    # Here we are defining 1 container inside the Pod.
+    # name of the container, and the image is taken from the values .yaml file.
+    spec:
+      containers:
+        - name: prometheus
+          image: {{ .Values.prometheus.image.repository }}:{{ .Values.prometheus.image.tag }}
+          
+          # The container's port is needed for Services to route traffic.
+          ports: [ { containerPort : 9090 } ]    
+    
+          # These are CLI flags (or command-line arguments) passed to the Prometheus binary:
+          args:
+            - "--config.file=/etc/prometheus/prometheus.yaml"         # Path to Prometheus config (provided by a ConfigMap).
+            - "--storage.tsdb.path=/prometheus"                       # Directory where Prometheus stores metrics data.
+
+          # Mount a volume into the container's filesystem.
+          volumeMounts:
+            - name: config
+              mountPath: /etc/prometheus
+    
+      # This defines the volume source as a ConfigMap.
+      # That ConfigMap should contain a file called prometheus.yaml.
+      # It will be mounted into the container at /etc/prometheus/prometheus.yaml.
+      volumes:
+        - name: config
+          configMap:
+            name: {{ .Release.Name }}-prometheus-config

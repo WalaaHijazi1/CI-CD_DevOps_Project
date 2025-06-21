@@ -1,0 +1,35 @@
+prometheus:
+  image:
+    repository: prom/prometheus
+    tag: latest
+  service:
+    type: NodePort   # ClusterIP exposes the service internally within the cluster only.
+    port: 9090
+  jenkins:
+    host: 192.168.49.50
+    port: 8080
+
+
+node-exporter:          # node_exporter always listens on port 9100 by default.
+  image:
+    repository: prom/node-exporter
+    tag: latest
+
+   
+grafana:
+  image:
+    repository: grafana/grafana
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 3000
+  admin:                # These are the default login credentials used to access Grafana’s web UI.
+    user: gfadmin
+    password: admin123
+    
+rbac:             # This tells Helm to generate RBAC (Role-Based Access Control) resources (like Roles, RoleBindings, and ServiceAccounts) for the components I'm deploying.
+  create: true
+  
+# RBAC regulates resource access based on the roles assigned to individual users within an organization.
+# In Kubernetes, RBAC allows you to define fine-grained permissions for users and service accounts,
+# specifying which resources they can access and what actions they can perform on those resources.
