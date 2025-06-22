@@ -10,7 +10,7 @@ pipeline {
     stages{
 	stage('Clean Workspace'){
         steps{
-            CleanWs()
+            cleanWs()
         }
 	}
 	stage('Clone Netflix Repository'){
