@@ -8,6 +8,9 @@ prometheus:
   jenkins:
     host: 192.168.49.50
     port: 8080
+  netflix:
+    host: "netflix-service.netflix.svc.cluster.local"
+    port: 3000
 
 
 node-exporter:          # node_exporter always listens on port 9100 by default.
@@ -21,8 +24,11 @@ grafana:
     repository: grafana/grafana
     tag: latest
   service:
-    type: ClusterIP
-    port: 3000
+    type: NodePort
+    ports:
+      - port: 3000
+        TargetPort: 3000
+        NodePort: 30008
   admin:                # These are the default login credentials used to access Grafana’s web UI.
     user: gfadmin
     password: admin123

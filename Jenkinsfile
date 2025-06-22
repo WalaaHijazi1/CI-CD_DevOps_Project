@@ -49,13 +49,13 @@ pipeline {
                 // ************************************************************
                 // abortPipeline: false	-> If the quality gate fails, Jenkins will not abort the pipeline, it just logs the result.
                 // (if false is changed to true the pipline will stop on failure.)
-                waitforQualityGate abortPipeline: false, credentialsId: 'sonarqube_token'
+                waitForQualityGate abortPipeline: false, credentialsId: 'sonarqube_token'
             }
         }
     }
     stage('Install Dependencies'){
         steps{
-            dir(netflix){
+            dir('netflix'){
                 sh "npm install"
             }
         }
@@ -69,13 +69,13 @@ pipeline {
                 dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odc installation: 'owasp-dependency-check'
                 // dependencyCheckPublisher: This takes the XML report generated from the scan and archives it.
                 // a “Dependency-Check Report” tab in the Jenkins job will be appear after the pipeline is finished.
-                dependencyCheckPuplisher pattern: '/dependency-check-report.xml'
+                dependencyCheckPuplisher pattern: 'dependency-check-report.xml'
             }
         }
     }
     stage('TRIVY FS scan'){
         steps{
-            sh "trivy fs ./netflix > trivyfs.txt"
+            sh "trivy fs ./netflix > trivyfiles/trivyfs.txt"
 
         }
     }
@@ -84,8 +84,9 @@ pipeline {
             dir('netflix'){
                 withDockerRegistry(credentialsId: 'docker-username', toolName:'docker'){
                     sh'''
-                        docker tag netflix walaahij/netflix:${BUILD_ID}
-                        docker push walaahij/netflix:${BUILD_ID}
+                        docker tag netflix sevenajay/netflix:latest
+                        docker build -t netflix .
+                        docker push sevenajay/netflix:latest
                     '''
                 }
             }
@@ -93,12 +94,12 @@ pipeline {
     }
     stage('TRIVY image scan'){
         steps{
-            sh 'trivy image walaahij/netflix:${BUILD_ID} > trivyfiles/trivyimage.txt'
+            sh 'trivy image sevenajay/netflix:latest > trivyfiles/trivyimage.txt'
         }
     }
     stage('Deploy image into a Container'){
         steps{
-            sh'docker run -d --name netflix -p 8000:80 walaahij/netflix:${BUILD_ID}'
+            sh'docker run -d --name netflix -p 8000:80 sevenajay/netflix:latest'
         }
     }
     stage('Deploy netflix to K8s'){
@@ -124,6 +125,17 @@ pipeline {
                     helm upgrade --install monitoring-stack ./mychart -n monitoring || helm install monitoring-stack ./mychart -n monitoring
                 '''
             }
+        }
+    }
+    post {
+     always {
+        emailext attachLog: true,
+            subject: "'${currentBuild.result}'",
+            body: "Project: ${env.JOB_NAME}<br/>" +
+                "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                "URL: ${env.BUILD_URL}<br/>",
+            to: 'hijaziwalaa69@gmail.com',
+            attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
         }
     }
 }
