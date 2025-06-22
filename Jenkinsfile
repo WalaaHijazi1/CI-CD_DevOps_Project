@@ -46,8 +46,9 @@ pipeline {
                         -Dsonar.projectKey=Netflix \
                         -Dsonar.projectName=Netflix \
                         -Dsonar.sources=. \
-                        -Dsonar.host.url=http://127.0.0.1:9000
-                    """                    
+                        -Dsonar.host.url=http://sonarqube:9000
+                    """
+                    // running the command: docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' sonarqube to find sonarqube ip.                     
                 }
             }
         }
