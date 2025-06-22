@@ -75,8 +75,8 @@ pipeline {
     }
     stage('TRIVY FS scan'){
         steps{
+            sh "trivy fs ./netflix > trivyfs.txt"
 
-            sh'trivy fs ~. > trivyfs.txt'
         }
     }
     stage('Docker Build and Push img into local repo'){
