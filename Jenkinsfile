@@ -133,13 +133,19 @@ pipeline {
   }
     post {
         always {
-            emailext attachLog: true,
-                subject: "'${currentBuild.result}'",
-                body: "Project: ${env.JOB_NAME}<br/>" +
-                    "Build Number: ${env.BUILD_NUMBER}<br/>" +
-                    "URL: ${env.BUILD_URL}<br/>",
-                to: 'hijaziwalaa69@gmail.com',
-                attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
+            script {
+                if (env.WORKSPACE && fileExists(env.WORKSPACE)) {
+                    emailext attachLog: true,
+                        subject: "'${currentBuild.result}'",
+                        body: "Project: ${env.JOB_NAME}<br/>" +
+                            "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                            "URL: ${env.BUILD_URL}<br/>",
+                        to: 'hijaziwalaa69@gmail.com',
+                        attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
+                } else {
+                    echo "Workspace not found, skipping email notification."
+                }
+            }
         }
     }
 }
