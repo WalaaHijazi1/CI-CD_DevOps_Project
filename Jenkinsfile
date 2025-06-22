@@ -29,16 +29,16 @@ pipeline {
     stage('SonarQube Analysis'){
         steps{
             dir(netflix){
-                // This stage runs a SonarQube code analysis on your project, sending the results to a configured SonarQube server named sonar-scanner.
+                // This stage runs a SonarQube code analysis on your project, sending the results to a configured SonarQube server named SonarScanner.
                 withSonarQubeEnv('SonarQube')
                 // This is a Jenkins Pipeline step provided by the SonarQube Scanner plugin.
                 // It temporarily injects environment variables (like SONAR_HOST_URL, SONAR_AUTH_TOKEN)
-                // so the sonar-scanner CLI knows how to reach the SonarQube server.
+                // so the SonarScanner CLI knows how to reach the SonarQube server.
                 // *************************************************************************************
-                //  $SCANNAR_HOME/bin/sonar-scanner : Executes the sonar-scanner command inside the shell.
+                //  $SCANNAR_HOME/bin/SonarScanner : Executes the SonarScanner command inside the shell.
                 // The SANNER_HOME environment variable is usually defined by Jenkins (or your pipeline) 
                 // and points to the installed SonarQube Scanner directory.
-                sh ''' $SCANNAR_HOME/bin/sonar-scanner -Dsonar.projectName=Netflix \
+                sh ''' $SCANNAR_HOME/bin/SonarScanner -Dsonar.projectName=Netflix \
                 -Dsonar.projectName=Netflix '''
             }
         }
