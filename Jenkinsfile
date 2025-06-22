@@ -84,7 +84,7 @@ pipeline {
     stage('Docker Build and Push img into local repo'){
         steps{
             dir('netflix'){
-                withDockerRegistry(credentialsId: 'docker-username'){
+                withDockerRegistry(credentialsId: 'docker-username', url: 'https://index.docker.io/v1/'){
                     sh'''
                         docker build --build-arg TMDB_V3_API_KEY=616957b1221b87984af5b9edf7545682 -t netflix
                         docker tag netflix walaahij/netflix:latest
