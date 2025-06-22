@@ -1,9 +1,9 @@
 pipeline {
     agent any
-    tools {
-	jdk 'jdk21'
-        nodejs 'node16'
-    }
+    //tools {
+	//jdk 'jdk21'
+    //    nodejs 'node16'
+    //}
     environment {
        SCANNAR_HOME=tool 'sonar-scanner'
     }
@@ -21,8 +21,10 @@ pipeline {
         }
 	}
     stage('Clone Personal Project Repo'){
-        // this repository has Trivy.sh in it that can be used to scan files.
-        git credentialsId: 'my-secret-token', url: 'https://github.com/WalaaHijazi1/CI-CD_DevOps_Project.git', branch: 'main'
+        steps{
+            // this repository has Trivy.sh in it that can be used to scan files.
+            git credentialsId: 'my-secret-token', url: 'https://github.com/WalaaHijazi1/CI-CD_DevOps_Project.git', branch: 'main'
+        }
     }
     stage('SonarQube Analysis'){
         steps{
@@ -82,7 +84,7 @@ pipeline {
     stage('Docker Build and Push img into local repo'){
         steps{
             dir('netflix'){
-                withDockerRegistry(credentialsId: 'docker-username', toolName:'docker'){
+                withDockerRegistry(credentialsId: 'docker-username'){
                     sh'''
                         docker tag netflix sevenajay/netflix:latest
                         docker build -t netflix .
