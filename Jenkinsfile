@@ -23,7 +23,7 @@ pipeline {
     stage('Clone Personal Project Repo'){
         steps{
             // this repository has Trivy.sh in it that can be used to scan files.
-            git credentialsId: 'my-secret-token', url: 'https://github.com/WalaaHijazi1/CI-CD_DevOps_Project.git', branch: 'main'
+            git credentialsId: 'my_secret_token', url: 'https://github.com/WalaaHijazi1/CI-CD_DevOps_Project.git', branch: 'main'
         }
     }
     stage('SonarQube Analysis'){
