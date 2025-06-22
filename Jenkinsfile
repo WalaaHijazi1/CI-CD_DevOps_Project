@@ -15,48 +15,115 @@ pipeline {
 	}
 	stage('Clone Netflix Repository'){
         steps{
-            git branch : 'main', url: 'https://github.com/Aj7Ay/Netflix-clone.git'
+            dir('netflix'){
+                git branch : 'main', url: 'https://github.com/Aj7Ay/Netflix-clone.git'
+            }
         }
 	}
+    stage('Clone Personal Project Repo'){
+        // this repository has Trivy.sh in it that can be used to scan files.
+        git credentialsId: 'my-secret-token', url: 'https://github.com/WalaaHijazi1/CI-CD_DevOps_Project.git', branch: 'main'
+    }
     stage('SonarQube Analysis'){
         steps{
-            // This stage runs a SonarQube code analysis on your project, sending the results to a configured SonarQube server named sonar-scanner.
-            withSonarQubeEnv('SonarQube')
-            // This is a Jenkins Pipeline step provided by the SonarQube Scanner plugin.
-            // It temporarily injects environment variables (like SONAR_HOST_URL, SONAR_AUTH_TOKEN)
-            // so the sonar-scanner CLI knows how to reach the SonarQube server.
-            // *************************************************************************************
-            //  $SCANNAR_HOME/bin/sonar-scanner : Executes the sonar-scanner command inside the shell.
-            // The SANNER_HOME environment variable is usually defined by Jenkins (or your pipeline) 
-            // and points to the installed SonarQube Scanner directory.
-            sh ''' $SCANNAR_HOME/bin/sonar-scanner -Dsonar.projectName=Netflix \
-            -Dsonar.projectName=Netflix '''
+            dir(netflix){
+                // This stage runs a SonarQube code analysis on your project, sending the results to a configured SonarQube server named sonar-scanner.
+                withSonarQubeEnv('SonarQube')
+                // This is a Jenkins Pipeline step provided by the SonarQube Scanner plugin.
+                // It temporarily injects environment variables (like SONAR_HOST_URL, SONAR_AUTH_TOKEN)
+                // so the sonar-scanner CLI knows how to reach the SonarQube server.
+                // *************************************************************************************
+                //  $SCANNAR_HOME/bin/sonar-scanner : Executes the sonar-scanner command inside the shell.
+                // The SANNER_HOME environment variable is usually defined by Jenkins (or your pipeline) 
+                // and points to the installed SonarQube Scanner directory.
+                sh ''' $SCANNAR_HOME/bin/sonar-scanner -Dsonar.projectName=Netflix \
+                -Dsonar.projectName=Netflix '''
+            }
         }
     }
     stage('Quality Gate'){
         steps{
-            // The quality gate stage is used to pause the pipeline and wait for SonarQube’s analysis result,
-            // specifically checking if the Quality Gate is passed or failed.
-            // ************************************************************
-            // abortPipeline: false	-> If the quality gate fails, Jenkins will not abort the pipeline, it just logs the result.
-            // (if false is changed to true the pipline will stop on failure.)
-            waitforQualityGate abortPipeline: false, credentialsId: 'sonarqube_token'
+            dir('netflix'){
+                // The quality gate stage is used to pause the pipeline and wait for SonarQube’s analysis result,
+                // specifically checking if the Quality Gate is passed or failed.
+                // ************************************************************
+                // abortPipeline: false	-> If the quality gate fails, Jenkins will not abort the pipeline, it just logs the result.
+                // (if false is changed to true the pipline will stop on failure.)
+                waitforQualityGate abortPipeline: false, credentialsId: 'sonarqube_token'
+            }
         }
     }
     stage('Install Dependencies'){
         steps{
-            sh "npm install"
+            dir(netflix){
+                sh "npm install"
+            }
         }
     }
     stage('OWASP FS SCAN'){
         steps{
-            dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odc installation: 'owasp-dependency-check'
-            dependencyCheckPuplisher pattern: '/dependency-check-report.xml'
+            dir('netflix'){
+                // dependencyCheck: This is a special Jenkins step provided by the OWASP Dependency-Check Plugin. It will: 
+                // Use the CLI scanner (from the configured tool named 'owasp-dependency-check'), Scan the current directory (--scan ./) and Skip Yarn and Node audit steps.
+                // odcInstallation: OWASP Dependency-Check tool.
+                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odc installation: 'owasp-dependency-check'
+                // dependencyCheckPublisher: This takes the XML report generated from the scan and archives it.
+                // a “Dependency-Check Report” tab in the Jenkins job will be appear after the pipeline is finished.
+                dependencyCheckPuplisher pattern: '/dependency-check-report.xml'
+            }
         }
     }
     stage('TRIVY FS scan'){
         steps{
-            sh'trivy fs . > trivyfs.txt'
+
+            sh'trivy fs ~. > trivyfs.txt'
+        }
+    }
+    stage('Docker Build and Push img into local repo'){
+        steps{
+            dir('netflix'){
+                withDockerRegistry(credentialsId: 'docker-username', toolName:'docker'){
+                    sh'''
+                        docker tag netflix walaahij/netflix:${BUILD_ID}
+                        docker push walaahij/netflix:${BUILD_ID}
+                    '''
+                }
+            }
+        }
+    }
+    stage('TRIVY image scan'){
+        steps{
+            sh 'trivy image walaahij/netflix:${BUILD_ID} > trivyfiles/trivyimage.txt'
+        }
+    }
+    stage('Deploy image into a Container'){
+        steps{
+            sh'docker run -d --name netflix -p 8000:80 walaahij/netflix:${BUILD_ID}'
+        }
+    }
+    stage('Deploy netflix to K8s'){
+        steps{
+            dir('netflix/Kubernetes'){
+                withKubeConfig(credentialsId: 'k8s-creds'){
+                    sh '''
+                        # if netflix namespace does exist in the cluster the second command will fail the pipeline.
+                        # by adding the first command will check if the namespace does exist if it will skip the second command.
+                        kubectl get namespace netflix || kubectl create namespace netflix
+                        kubectl apply -f deployment.yaml -n netflix
+                        kubectl apply -f service.yaml -n netflix
+                    '''
+                }
+            }
+        }
+    }
+    stage('Deploy Prometheus and Grafana into K8s'){
+        steps{
+            withKubeConfig(credentialsId: 'k8s-creds'){
+                sh '''
+                    kubectl get namespace monitoring || kubectl create namespace monitoring
+                    helm upgrade --install monitoring-stack ./mychart -n monitoring || helm install monitoring-stack ./mychart -n monitoring
+                '''
+            }
         }
     }
 }
