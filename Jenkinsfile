@@ -46,7 +46,7 @@ pipeline {
                         -Dsonar.projectKey=Netflix \
                         -Dsonar.projectName=Netflix \
                         -Dsonar.sources=. \
-                        -Dsonar.host.url=http://172.30.240.1:9000
+                        -Dsonar.host.url=http://127.0.0.1:9000
                     """                    
                 }
             }
