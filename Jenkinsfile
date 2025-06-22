@@ -86,9 +86,10 @@ pipeline {
             dir('netflix'){
                 withDockerRegistry(credentialsId: 'docker-username'){
                     sh'''
-                        docker tag netflix sevenajay/netflix:latest
+                        docker build --build-arg TMDB_V3_API_KEY=616957b1221b87984af5b9edf7545682 -t netflix
+                        docker tag netflix walaahij/netflix:latest
                         docker build -t netflix .
-                        docker push sevenajay/netflix:latest
+                        docker push walaahij/netflix:latest
                     '''
                 }
             }
@@ -96,12 +97,12 @@ pipeline {
     }
     stage('TRIVY image scan'){
         steps{
-            sh 'trivy image sevenajay/netflix:latest > trivyfiles/trivyimage.txt'
+            sh 'trivy image walaahij/netflix:latest > trivyfiles/trivyimage.txt'
         }
     }
     stage('Deploy image into a Container'){
         steps{
-            sh'docker run -d --name netflix -p 8000:80 sevenajay/netflix:latest'
+            sh'docker run -d --name netflix -p 8000:80 walaahij/netflix:latest'
         }
     }
     stage('Deploy netflix to K8s'){
@@ -129,16 +130,16 @@ pipeline {
             }
         }
     }
+  }
     post {
-     always {
-        emailext attachLog: true,
-            subject: "'${currentBuild.result}'",
-            body: "Project: ${env.JOB_NAME}<br/>" +
-                "Build Number: ${env.BUILD_NUMBER}<br/>" +
-                "URL: ${env.BUILD_URL}<br/>",
-            to: 'hijaziwalaa69@gmail.com',
-            attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
+        always {
+            emailext attachLog: true,
+                subject: "'${currentBuild.result}'",
+                body: "Project: ${env.JOB_NAME}<br/>" +
+                    "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                    "URL: ${env.BUILD_URL}<br/>",
+                to: 'hijaziwalaa69@gmail.com',
+                attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
         }
     }
-  }
 }
