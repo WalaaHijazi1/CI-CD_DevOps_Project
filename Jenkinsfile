@@ -28,7 +28,7 @@ pipeline {
     }
     stage('SonarQube Analysis'){
         steps{
-            dir(netflix){
+            dir('netflix'){
                 // This stage runs a SonarQube code analysis on your project, sending the results to a configured SonarQube server named SonarScanner.
                 withSonarQubeEnv('SonarQube')
                 // This is a Jenkins Pipeline step provided by the SonarQube Scanner plugin.
