@@ -66,7 +66,7 @@ pipeline {
                 // dependencyCheck: This is a special Jenkins step provided by the OWASP Dependency-Check Plugin. It will: 
                 // Use the CLI scanner (from the configured tool named 'owasp-dependency-check'), Scan the current directory (--scan ./) and Skip Yarn and Node audit steps.
                 // odcInstallation: OWASP Dependency-Check tool.
-                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odc installation: 'owasp-dependency-check'
+                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'owasp-dependency-check'
                 // dependencyCheckPublisher: This takes the XML report generated from the scan and archives it.
                 // a “Dependency-Check Report” tab in the Jenkins job will be appear after the pipeline is finished.
                 dependencyCheckPuplisher pattern: 'dependency-check-report.xml'
