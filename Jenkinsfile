@@ -38,8 +38,16 @@ pipeline {
                 //  $SCANNAR_HOME/bin/SonarScanner : Executes the SonarScanner command inside the shell.
                 // The SANNER_HOME environment variable is usually defined by Jenkins (or your pipeline) 
                 // and points to the installed SonarQube Scanner directory.
-                sh ''' $SCANNAR_HOME/bin/SonarScanner -Dsonar.projectName=Netflix \
-                -Dsonar.projectName=Netflix '''
+                //************************************************************
+                //sh ''' $SCANNAR_HOME/bin/SonarScanner -Dsonar.projectName=Netflix \
+                //-Dsonar.projectName=Netflix '''
+                sh """
+                    $SCANNAR_HOME/bin/sonar-scanner \
+                    -Dsonar.projectKey=Netflix \
+                    -Dsonar.projectName=Netflix \
+                    -Dsonar.sources=. \
+                    -Dsonar.host.url=http://127.0.0.1:9000
+                """
             }
         }
     }
