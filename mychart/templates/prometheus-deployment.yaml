@@ -9,7 +9,7 @@ apiVersion: apps/v1  # This version for deployment.
 
 kind: Deployment
 metadata:
-  name: {{ .Release.Name | lower }}-prometheus           # Helm templating: the name of the release
+  name: prometheus           # Helm templating: the name of the release
 spec:
   replicas: 1                                   # one prometheus pod running.
   
@@ -53,4 +53,4 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: {{ .Release.Name }}-prometheus-config
+            name: prometheus-config

@@ -28,7 +28,7 @@ data:
           metrics_path: /metrics
           static_configs:
             - targets: ['netflix-service.netflix.svc.cluster.local:3000']
-      - job_name: prometheus                   # Tells Prometheus to monitor itself.
+      - job_name: 'prometheus'                   # Tells Prometheus to monitor itself.
         static_configs:
           - targets: ['localhost:9090']        # localhost:9090 is the port where Prometheus runs inside the container.
       - job_name: jenkins                      #  Appears in Prometheus UI for this target.

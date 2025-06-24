@@ -16,21 +16,29 @@ pipeline {
 	stage('Clone Netflix Repository'){
         steps{
             dir('netflix'){
-                git branch : 'main', url: 'https://github.com/Aj7Ay/Netflix-clone.git'
+            deleteDir()
+            script {
+                echo '>> Cloning Netflix repo...'
+                git credentialsId: 'my_secret_token', url: 'https://github.com/WalaaHijazi1/Netflix-clone.git', branch: 'main'
+                sh 'ls -la'
+                }
             }
-        }
-	}
+	    }
+    }
     stage('Clone Personal Project Repo'){
         steps{
-            // this repository has Trivy.sh in it that can be used to scan files.
-            git credentialsId: 'my_secret_token', url: 'https://github.com/WalaaHijazi1/CI-CD_DevOps_Project.git', branch: 'main'
+            dir('tools repo'){
+                deleteDir()
+                // this repository has Trivy.sh in it that can be used to scan files.
+                git credentialsId: 'my_secret_token', url: 'https://github.com/WalaaHijazi1/CI-CD_DevOps_Project.git', branch: 'main'
+            }
         }
     }
     stage('SonarQube Analysis'){
         steps{
             dir('netflix'){
                 // This stage runs a SonarQube code analysis on your project, sending the results to a configured SonarQube server named SonarScanner.
-                withSonarQubeEnv('SonarQube'){
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]){
                     // This is a Jenkins Pipeline step provided by the SonarQube Scanner plugin.
                     // It temporarily injects environment variables (like SONAR_HOST_URL, SONAR_AUTH_TOKEN)
                     // so the SonarScanner CLI knows how to reach the SonarQube server.
@@ -41,13 +49,14 @@ pipeline {
                     //************************************************************
                     //sh ''' $SCANNAR_HOME/bin/SonarScanner -Dsonar.projectName=Netflix \
                     //-Dsonar.projectName=Netflix '''
-                    sh """
-                        $SCANNAR_HOME/bin/sonar-scanner \
+                    // $SCANNAR_HOME/bin/sonar-scanner \
+                    sh '''
+                        /home/ubuntu/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/SonarScanner/bin/sonar-scanner \
                         -Dsonar.projectKey=Netflix \
                         -Dsonar.projectName=Netflix \
                         -Dsonar.sources=. \
-                        -Dsonar.host.url=http://sonarqube:9000
-                    """
+                        -Dsonar.host.url=http://15.206.0.203:9000
+                    '''
                     // running the command: docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' sonarqube to find sonarqube ip.                     
                 }
             }
@@ -61,7 +70,15 @@ pipeline {
                 // ************************************************************
                 // abortPipeline: false	-> If the quality gate fails, Jenkins will not abort the pipeline, it just logs the result.
                 // (if false is changed to true the pipline will stop on failure.)
-                waitForQualityGate abortPipeline: false, credentialsId: 'sonarqube_token'
+                waitForQualityGate abortPipeline: false, credentialsId: 'sonar-token'
+            }
+        }
+    }
+    stage('Verify Workspace'){
+        steps{
+            dir('netflix'){
+                sh'pwd'
+                sh'ls'
             }
         }
     }
@@ -81,7 +98,7 @@ pipeline {
                 dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'owasp-dependency-check'
                 // dependencyCheckPublisher: This takes the XML report generated from the scan and archives it.
                 // a “Dependency-Check Report” tab in the Jenkins job will be appear after the pipeline is finished.
-                dependencyCheckPuplisher pattern: 'dependency-check-report.xml'
+                dependencyCheckPublisher pattern: 'dependency-check-report.xml'
             }
         }
     }
@@ -91,16 +108,14 @@ pipeline {
 
         }
     }
-    stage('Docker Build and Push img into local repo'){
-        steps{
-            dir('netflix'){
-                withDockerRegistry(credentialsId: 'docker-username', url: 'https://index.docker.io/v1/'){
-                    sh'''
-                        docker build --build-arg TMDB_V3_API_KEY=616957b1221b87984af5b9edf7545682 -t netflix
-                        docker tag netflix walaahij/netflix:latest
-                        docker build -t netflix .
-                        docker push walaahij/netflix:latest
-                    '''
+    stage('Docker Build and Push img into local repo') {
+    steps {
+        dir('netflix') {
+            withDockerRegistry(credentialsId: 'docker-username', url: 'https://index.docker.io/v1/') {
+                sh '''
+                    docker build --build-arg TMDB_V3_API_KEY=616957b1221b87984af5b9edf7545682 -t walaahij/netflix:latest .
+                    docker push walaahij/netflix:latest
+                '''
                 }
             }
         }
@@ -135,7 +150,7 @@ pipeline {
             withKubeConfig(credentialsId: 'k8s-creds'){
                 sh '''
                     kubectl get namespace monitoring || kubectl create namespace monitoring
-                    helm upgrade --install monitoring-stack ./mychart -n monitoring || helm install monitoring-stack ./mychart -n monitoring
+                    helm upgrade --install monitoring-stack ./tools_repo/mychart -n monitoring || helm install monitoring-stack ./tools_repo/mychart -n monitoring
                 '''
             }
         }

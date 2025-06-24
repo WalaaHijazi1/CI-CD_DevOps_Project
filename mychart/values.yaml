@@ -24,7 +24,7 @@ grafana:
     repository: grafana/grafana
     tag: latest
   service:
-    type: NodePort
+    type: LoadBalancer
     port: 3000         # Service port
     targetPort: 3000   # Pod/container port
     nodePort: 30008    # Exposed node port (must be in range 30000-32767)
