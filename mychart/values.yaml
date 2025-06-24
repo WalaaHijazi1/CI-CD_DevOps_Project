@@ -25,10 +25,9 @@ grafana:
     tag: latest
   service:
     type: NodePort
-    ports:
-      - port: 3000
-        targetPort: 3000
-        NodePort: 30008
+    port: 3000         # Service port
+    targetPort: 3000   # Pod/container port
+    nodePort: 30008    # Exposed node port (must be in range 30000-32767)
   admin:                # These are the default login credentials used to access Grafana’s web UI.
     user: gfadmin
     password: admin123
