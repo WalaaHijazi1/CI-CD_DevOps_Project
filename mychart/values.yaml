@@ -27,7 +27,7 @@ grafana:
     type: NodePort
     ports:
       - port: 3000
-        TargetPort: 3000
+        targetPort: 3000
         NodePort: 30008
   admin:                # These are the default login credentials used to access Grafana’s web UI.
     user: gfadmin
