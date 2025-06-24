@@ -12,12 +12,6 @@ prometheus:
   netflix:
     host: "netflix-service.netflix.svc.cluster.local"
     port: 3000
-    
-ingress:
-  enabled: true
-  grafanaHost: grafana.192.168.49.2.nip.io
-  prometheusHost: prometheus.192.168.49.2.nip.io
-
 
 
 node-exporter:          # node_exporter always listens on port 9100 by default.
