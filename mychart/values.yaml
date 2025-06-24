@@ -7,7 +7,7 @@ prometheus:
     port: 9090
     nodePort: 30381      # External port to access Prometheus
   jenkins:
-    host: 192.168.49.50
+    host: 15.206.0.203
     port: 8080
   netflix:
     host: "netflix-service.netflix.svc.cluster.local"
@@ -15,8 +15,9 @@ prometheus:
     
 ingress:
   enabled: true
-  grafanaHost: grafana.local
-  prometheusHost: prometheus.local
+  grafanaHost: grafana.192.168.49.2.nip.io
+  prometheusHost: prometheus.192.168.49.2.nip.io
+
 
 
 node-exporter:          # node_exporter always listens on port 9100 by default.
