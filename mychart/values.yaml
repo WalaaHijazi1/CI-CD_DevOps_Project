@@ -21,7 +21,6 @@ node-exporter:          # node_exporter always listens on port 9100 by default.
 
    
 grafana:
-grafana:
   image:
     repository: grafana/grafana
     tag: latest
