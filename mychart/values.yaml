@@ -21,6 +21,7 @@ node-exporter:          # node_exporter always listens on port 9100 by default.
 
    
 grafana:
+grafana:
   image:
     repository: grafana/grafana
     tag: latest
@@ -32,7 +33,16 @@ grafana:
   admin:                # These are the default login credentials used to access Grafana’s web UI.
     user: gfadmin
     password: admin123
-    
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          access: proxy
+          url: http://prometheus.monitoring.svc.cluster.local:9090
+          isDefault: true
+
 rbac:             # This tells Helm to generate RBAC (Role-Based Access Control) resources (like Roles, RoleBindings, and ServiceAccounts) for the components I'm deploying.
   create: true
   
