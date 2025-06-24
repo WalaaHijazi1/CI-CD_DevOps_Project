@@ -5,6 +5,7 @@ prometheus:
   service:
     type: NodePort   # ClusterIP exposes the service internally within the cluster only.
     port: 9090
+    nodePort: 30381      # External port to access Prometheus
   jenkins:
     host: 192.168.49.50
     port: 8080

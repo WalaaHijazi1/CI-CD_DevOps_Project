@@ -4,9 +4,9 @@ metadata:
   name: prometheus
 spec:
   type: {{ .Values.prometheus.service.type }}
-  ports:   
+  ports:
     - port: {{ .Values.prometheus.service.port }}
       targetPort: 9090
-      NodePort: 30900
+      nodePort: {{ .Values.prometheus.service.nodePort }}
   selector:
     app: prometheus
