@@ -3,10 +3,10 @@ kind: Service
 metadata:
   name: prometheus
 spec:
-  type: {{ .Values.prometheus.service.type }}
+  type: {{ index .Values "kube-prometheus-stack" "prometheus" "service" "type" }}
   ports:
-    - port: {{ .Values.prometheus.service.port }}
+    - port: {{ index .Values "kube-prometheus-stack" "prometheus" "service" "port" }}
       targetPort: 9090
-      nodePort: {{ .Values.prometheus.service.nodePort }}
+      nodePort: {{ index .Values "kube-prometheus-stack" "prometheus" "service" "nodePort" }}
   selector:
     app: prometheus
