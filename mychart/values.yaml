@@ -1,4 +1,4 @@
-prometheus-operator:
+kube-prometheus-stack:
   enabled: true
   prometheus:
     service:
