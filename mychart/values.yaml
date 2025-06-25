@@ -1,5 +1,7 @@
 kube-prometheus-stack:
   enabled: true
+  
+  # Prometheus Configuration
   prometheus:
     service:
       type: NodePort
@@ -8,35 +10,37 @@ kube-prometheus-stack:
     prometheusSpec:
       serviceMonitorSelector:
         matchLabels:
-          release: prometheus  # Matches your ServiceMonitor label
-    additionalScrapeConfigs:
-      - job_name: 'jenkins'
-        metrics_path: /prometheus
-        static_configs:
-          - targets: ['15.206.0.203:8080']  # Static Jenkins IP
+          release: prometheus
+      additionalScrapeConfigs:
+        - job_name: 'jenkins'
+          metrics_path: /prometheus
+          static_configs:
+            - targets: ['15.206.0.203:8080']
 
-grafana:
-  image:
-    repository: grafana/grafana
-    tag: latest
-  service:
-    type: LoadBalancer
-    port: 3000
-    targetPort: 3000
-    nodePort: 30008
-  admin:
-    user: gfadmin
-    password: admin123
-  datasources:
-    datasources.yaml:
-      apiVersion: 1
-      datasources:
-        - name: Prometheus
-          type: prometheus
-          access: proxy
-          url: http://prometheus-operated.monitoring.svc.cluster.local:9090
-          isDefault: true
+  # Grafana Configuration
+  grafana:
+    enabled: true
+    service:
+      type: LoadBalancer
+      port: 3000
+      nodePort: 30008
+    adminUser: "gfadmin"
+    adminPassword: "admin123"
+    datasources:
+      datasources.yaml:
+        apiVersion: 1
+        datasources:
+          - name: Prometheus
+            type: prometheus
+            access: proxy
+            url: http://prometheus-operated:9090
+            isDefault: true
 
+  # Node Exporter Configuration
+  nodeExporter:
+    enabled: true
+
+# RBAC Configuration
 rbac:
   create: true
 
