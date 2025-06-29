@@ -1,8 +1,0 @@
-JavaApp:
-  image:
-    repository: openjdk
-    tage: latest
-  service:
-    type: targetPort
-    port: 
-
