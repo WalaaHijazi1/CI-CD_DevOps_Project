@@ -15,9 +15,6 @@ RUN yarn build
 FROM nginx:stable-alpine
 
 # Use non-root user for better security (optional but recommended)
-# nginx user has UID 101 by default in Alpine
-USER 101
-
 WORKDIR /usr/share/nginx/html
 RUN rm -rf ./*
 
