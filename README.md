@@ -62,9 +62,9 @@ These metrics are visualized using Grafana with ready-made dashboards (e.g., das
 ## Results:
 
 ### **Netflix:**
-<video src="./images/Netflix-img1.png" controls width="800"></video>
+<img src="./images/Netflix-img1.png" width="1000" height="500">
 
-<video src="./images/Netflix-img.png" controls width="800"></video>
+<img src="./images/Netflix-img.png" width="1000" height="500">
 
 ### **Prometheus:**
 <img src="./images/prometheus.png"  width="1000" height="500">
