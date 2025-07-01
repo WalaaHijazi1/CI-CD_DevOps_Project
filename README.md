@@ -5,29 +5,33 @@ In this project, all tools and services are set up on a single local machine, us
 #### Netflix code source link:
 https://github.com/Aj7Ay/Netflix-clone
 
-#### Origina project repository:
+#### Original project repository:
 https://github.com/NotHarshhaa/DevOps-Projects/tree/master/DevOps-Project-09
 
 
 ## Project Architecture and Tools Used
-Local Machine Setup (Outside Minikube):
-**Jenkins:** Manages the CI/CD pipeline. It pulls code, runs tests and scans, builds Docker images, and deploys to Kubernetes.
-**Docker:** Used to build and push the Netflix app image to DockerHub.
-**Trivy:** Scans the file system and Docker images for vulnerabilities.
-**Prometheus:** Collects metrics from Jenkins and Kubernetes nodes.
+Local Machine Setup (Outside Minikube):<br/>
+**Jenkins:** Manages the CI/CD pipeline. It pulls code, runs tests and scans, builds Docker images, and deploys to Kubernetes.<br/>
+**Docker:** Used to build and push the Netflix app image to DockerHub.<br/>
+**Trivy:** Scans the file system and Docker images for vulnerabilities.<br/>
+**Prometheus:** Collects metrics from Jenkins and Kubernetes nodes.<br/>
 **Grafana:** Visualizes the collected metrics with customizable dashboards.
 
 
+### CI/CD Pipeline Flow in Jenkins:
+<img src="./images/CICD_Jenkins_pipeline.png"  width="1000" height="500">
+
+
 ## Minikube (Local Kubernetes Cluster):
-**Netflix Application Pod:** A containerized frontend (built with React + TypeScript) served using NGINX.
+**Netflix Application Pod:** A containerized frontend (built with React + TypeScript) served using NGINX.<br/>
 **Node Exporter Pod:** Collects system metrics (CPU, memory, disk, etc.) from the Minikube environment and exposes them for Prometheus.
 
 ## Key Implementation Steps
 #### CI/CD with Jenkins:
-* Jenkins fetches the source code from GitHub.
-* Runs SonarQube analysis for code quality.
-* Performs OWASP Dependency Check and Trivy scans to ensure security.
-* Builds a Docker image of the Netflix clone and pushes it to DockerHub.
+* Jenkins fetches the source code from GitHub.<br/>
+* Runs SonarQube analysis for code quality.<br/>
+* Performs OWASP Dependency Check and Trivy scans to ensure security.<br/>
+* Builds a Docker image of the Netflix clone and pushes it to DockerHub.<br/>
 * Deploys the app into Minikube using kubectl and predefined YAML files.
 
 ## Monitoring Setup:
@@ -50,8 +54,6 @@ These metrics are visualized using Grafana with ready-made dashboards (e.g., das
 * Real-time monitoring is available via Grafana dashboards for both Jenkins and the Kubernetes environment.
 * The project simulates a real-world DevSecOps pipeline within a single machine, ideal for learning and testing CI/CD, containerization, Kubernetes, security scanning, and observability.
 
-### CI/CD Pipeline Flow in Jenkins:
-<img src="./images/CICD_Jenkins_pipeline.png"  width="1000" height="500">
 
 ###  Minikube Cluster Architecture:
 <img src="./images/CICD_Jenkins_pipeline.png"  width="1200" height="600">
