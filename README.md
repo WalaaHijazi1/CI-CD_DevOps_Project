@@ -56,4 +56,4 @@ These metrics are visualized using Grafana with ready-made dashboards (e.g., das
 
 
 ###  Minikube Cluster Architecture:
-<img src="./images/CICD_Jenkins_pipeline.png"  width="1200" height="600">
+<img src="./images/minikube+prom_map.png"  width="1200" height="600">
