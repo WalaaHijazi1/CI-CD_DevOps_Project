@@ -57,3 +57,19 @@ These metrics are visualized using Grafana with ready-made dashboards (e.g., das
 
 ###  Minikube Cluster Architecture:
 <img src="./images/minikube+prom_map.png"  width="1000" height="500">
+
+
+## Results:
+
+### **Netflix:**
+<video src="./images/netflix-demo.mp4" controls width="800"></video>
+
+<video src="./images/Netflix-movie.mp4" controls width="800"></video>
+
+### **Prometheus:**
+<img src="./images/prometheus.png"  width="1000" height="500">
+
+### **Grafana:**
+<img src="./images/node-exporter-minikube.png"  width="1000" height="500">
+
+<img src="./images/grafana-view.png"  width="1000" height="500">
