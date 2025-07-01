@@ -1,95 +1,57 @@
-<div align="center">
-  <a href="http://netflix-clone-with-tmdb-using-react-mui.vercel.app/">
-    <img src="./public/assets/netflix-logo.png" alt="Logo" width="100" height="32">
-  </a>
+ # 𝐃𝐞𝐯𝐒𝐞𝐜𝐎𝐩𝐬 𝐍𝐞𝐭𝐟𝐥𝐢𝐱 𝐂𝐥𝐨𝐧𝐞 𝐰𝐢𝐭𝐡 𝐂𝐈/𝐂𝐃 𝐚𝐧𝐝 𝐌𝐨𝐧𝐢𝐭𝐨𝐫𝐢𝐧𝐠
 
-  <h3 align="center">Netflix Clone</h3>
+In this project, all tools and services are set up on a single local machine, using Minikube to simulate a Kubernetes cluster. The environment includes Jenkins, Docker, Trivy, Prometheus, and Grafana, enabling end-to-end CI/CD, vulnerability scanning, and monitoring—all in one self-contained system.
 
-  <p align="center">
-    <a href="https://netflix-clone-react-typescript.vercel.app/">View Demo</a>
-    ·
-    <a href="https://github.com/crazy-man22/netflix-clone-react-typescript/issues">Report Bug</a>
-    ·
-    <a href="https://github.com/crazy-man22/netflix-clone-react-typescript/issues">Request Feature</a>
-  </p>
-</div>
+#### Netflix code source link:
+https://github.com/Aj7Ay/Netflix-clone
 
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li>
-      <a href="#prerequests">Prerequests</a>
-    </li>
-    <li>
-      <a href="#which-features-this-project-deals-with">Which features this project deals with</a>
-    </li>
-    <li><a href="#third-party-libraries-used-except-for-react-and-rtk">Third Party libraries used except for React and RTK</a></li>
-    <li>
-      <a href="#contact">Contact</a>
-    </li>
-  </ol>
-</details>
+#### Origina project repository:
+https://github.com/NotHarshhaa/DevOps-Projects/tree/master/DevOps-Project-09
 
-<br />
 
-<div align="center">
-  <img src="./public/assets/home-page.png" alt="Logo" width="100%" height="100%">
-  <p align="center">Home Page</p>
-  <img src="./public/assets/mini-portal.png" alt="Logo" width="100%" height="100%">
-  <p align="center">Mini Portal</p>
-  <img src="./public/assets/detail-modal.png" alt="Logo" width="100%" height="100%">
-  <p align="center">Detail Modal</p>
-  <img src="./public/assets/grid-genre.png" alt="Logo" width="100%" height="100%">
-  <p align="center">Grid Genre Page</p>
-  <img src="./public/assets/watch.png" alt="Logo" width="100%" height="100%">
-  <p align="center">Watch Page with customer contol bar</p>
-</div>
+## Project Architecture and Tools Used
+Local Machine Setup (Outside Minikube):
+**Jenkins:** Manages the CI/CD pipeline. It pulls code, runs tests and scans, builds Docker images, and deploys to Kubernetes.
+**Docker:** Used to build and push the Netflix app image to DockerHub.
+**Trivy:** Scans the file system and Docker images for vulnerabilities.
+**Prometheus:** Collects metrics from Jenkins and Kubernetes nodes.
+**Grafana:** Visualizes the collected metrics with customizable dashboards.
 
-## Prerequests
 
-- Create an account if you don't have on [TMDB](https://www.themoviedb.org/).
-  Because I use its free API to consume movie/tv data.
-- And then follow the [documentation](https://developers.themoviedb.org/3/getting-started/introduction) to create API Key
-- Finally, if you use v3 of TMDB API, create a file named `.env`, and copy and paste the content of `.env.example`.
-  And then paste the API Key you just created.
+## Minikube (Local Kubernetes Cluster):
+**Netflix Application Pod:** A containerized frontend (built with React + TypeScript) served using NGINX.
+**Node Exporter Pod:** Collects system metrics (CPU, memory, disk, etc.) from the Minikube environment and exposes them for Prometheus.
 
-## Which features this project deal with
+## Key Implementation Steps
+#### CI/CD with Jenkins:
+* Jenkins fetches the source code from GitHub.
+* Runs SonarQube analysis for code quality.
+* Performs OWASP Dependency Check and Trivy scans to ensure security.
+* Builds a Docker image of the Netflix clone and pushes it to DockerHub.
+* Deploys the app into Minikube using kubectl and predefined YAML files.
 
-- How to create and use [Custom Hooks](https://reactjs.org/docs/hooks-custom.html)
-- How to use [Context](https://reactjs.org/docs/context.html) and its provider
-- How to use lazy and Suspense for [Code-Splitting](https://reactjs.org/docs/code-splitting.html)
-- How to use a new [lazy](https://reactrouter.com/en/main/route/lazy) feature of react-router to reduce bundle size.
-- How to use data [loader](https://reactrouter.com/en/main/route/loader) of react-router, and how to use redux dispatch in the loader to fetch data before rendering component.
-- How to use [Portal](https://reactjs.org/docs/portals.html)
-- How to use [Fowarding Refs](https://reactjs.org/docs/forwarding-refs.html) to make components reusuable
-- How to create and use [HOC](https://reactjs.org/docs/higher-order-components.html)
-- How to customize default theme of [MUI](https://mui.com/)
-- How to use [RTK](https://redux-toolkit.js.org/introduction/getting-started)
-- How to use [RTK Query](https://redux-toolkit.js.org/rtk-query/overview)
-- How to customize default classname of [MUI](https://mui.com/material-ui/experimental-api/classname-generator)
-- Infinite Scrolling(using [Intersection Observer API](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API))
-- How to make awesome carousel using [slick-carousel](https://react-slick.neostack.com)
+## Monitoring Setup:
+Prometheus is configured to scrape metrics from:
+* The Node Exporter pod inside Minikube.
+* Jenkins (via Prometheus plugin and /prometheus endpoint).
+These metrics are visualized using Grafana with ready-made dashboards (e.g., dashboard ID 1860 for Node Exporter, ID 9964 for Jenkins).
 
-## Third Party libraries used except for React and RTK
+## Security Integration:
+* Trivy FS Scan checks for vulnerabilities in source code before the build.
+* Trivy Image Scan analyzes the built Docker image for known CVEs.
+* OWASP Dependency Check detects insecure third-party libraries.
 
-- [react-router-dom@v6.9](https://reactrouter.com/en/main)
-- [MUI(Material UI)](https://mui.com/)
-- [framer-motion](https://www.framer.com/docs/)
-- [video.js](https://videojs.com)
-- [react-slick](https://react-slick.neostack.com/)
+## Email Notifications:
+* Jenkins is integrated with Gmail using an App Password.
+* After every pipeline run, Jenkins sends an email with the build result and scan reports attached.
 
-## Install with Docker
+## Result:
+* The Netflix app runs inside Minikube and is accessible via a NodePort service.
+* Real-time monitoring is available via Grafana dashboards for both Jenkins and the Kubernetes environment.
+* The project simulates a real-world DevSecOps pipeline within a single machine, ideal for learning and testing CI/CD, containerization, Kubernetes, security scanning, and observability.
 
-```sh
-docker build --build-arg TMDB_V3_API_KEY=your_api_key_here -t netflix-clone .
+### CI/CD Pipeline Flow in Jenkins:
+<img src="./images/CICD_Jenkins_pipeline.png"  width="1000" height="500">
 
-docker run --name netflix-clone-website --rm -d -p 80:80 netflix-clone
-```
-
-## Todo
-
-- Make the animation of video card portal more similar to Netflix.
-- Improve performance. I am using `context` and `provider` but all components subscribed to the context's value are re-rendered. These re-renders happen even if the part of the value is not used in render of the component. there are [several ways](https://blog.axlight.com/posts/4-options-to-prevent-extra-rerenders-with-react-context/) to prevent the re-renders from these behaviours. In addition to them, there may be several performance issues.
-- Replace bundler([Vite](https://vitejs.dev/guide)) with [Turbopack](https://turbo.build/pack/docs/why-turbopack). Turbopack is introduced in Next.js conf recently. It's very fast but it's nor ready to use right now. it just support Next.js, and they plan to support all others as soon as possible. so if it's ready to use, replace [Vite](https://vitejs.dev/guide) with [Turbopack](https://turbo.build/pack/docs/why-turbopack).
-- Add accessibilities for better UX.
-- Add Tests.
+###  Minikube Cluster Architecture:
+<img src="./images/CICD_Jenkins_pipeline.png"  width="1200" height="600">
