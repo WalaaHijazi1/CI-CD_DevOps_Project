@@ -1,176 +1,175 @@
 pipeline {
     agent any
-    //tools {
-	//jdk 'jdk21'
-    //    nodejs 'node16'
-    //}
+    tools {
+        nodejs 'node20'
+    }
     environment {
-       SCANNAR_HOME=tool 'SonarScanner'
+        SCANNAR_HOME = tool 'SonarScanner'
     }
-    stages{
-	stage('Clean Workspace'){
-        steps{
-            cleanWs()
-        }
-	}
-	stage('Clone Netflix Repository'){
-        steps{
-            dir('netflix'){
-            deleteDir()
-            script {
-                echo '>> Cloning Netflix repo...'
-                git credentialsId: 'my_secret_token', url: 'https://github.com/WalaaHijazi1/Netflix-clone.git', branch: 'main'
-                sh 'ls -la'
-                }
+    stages {
+        stage('Clean Workspace') {
+            steps {
+                cleanWs()
             }
-	    }
-    }
-    stage('Clone Personal Project Repo'){
-        steps{
-            dir('tools repo'){
+        }
+
+        stage('Verify Java and Node Version') {
+            steps {
+                sh 'node -v'
+                sh 'npm -v'
+                sh 'java -version'
+            }
+        }
+        stage('Clone Repository With Netflix & Node-Exporter') {
+            steps {
                 deleteDir()
-                // this repository has Trivy.sh in it that can be used to scan files.
                 git credentialsId: 'my_secret_token', url: 'https://github.com/WalaaHijazi1/CI-CD_DevOps_Project.git', branch: 'main'
             }
         }
-    }
-    stage('SonarQube Analysis'){
-        steps{
-            dir('netflix'){
-                // This stage runs a SonarQube code analysis on your project, sending the results to a configured SonarQube server named SonarScanner.
-                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]){
+
+        stage('SonarQube Analysis'){
+            steps{
+                withSonarQubeEnv('SonarQube'){
+                    // This stage runs a SonarQube code analysis on your project, sending the results to a configured SonarQube server named SonarScanner.
                     // This is a Jenkins Pipeline step provided by the SonarQube Scanner plugin.
                     // It temporarily injects environment variables (like SONAR_HOST_URL, SONAR_AUTH_TOKEN)
                     // so the SonarScanner CLI knows how to reach the SonarQube server.
                     // *************************************************************************************
                     //  $SCANNAR_HOME/bin/SonarScanner : Executes the SonarScanner command inside the shell.
-                    // The SANNER_HOME environment variable is usually defined by Jenkins (or your pipeline) 
+                    // The SANNER_HOME environment variable is usually defined by Jenkins (or your pipeline)
                     // and points to the installed SonarQube Scanner directory.
                     //************************************************************
                     //sh ''' $SCANNAR_HOME/bin/SonarScanner -Dsonar.projectName=Netflix \
                     //-Dsonar.projectName=Netflix '''
                     // $SCANNAR_HOME/bin/sonar-scanner \
                     sh '''
-                        /home/ubuntu/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/SonarScanner/bin/sonar-scanner \
-                        -Dsonar.projectKey=Netflix \
-                        -Dsonar.projectName=Netflix \
-                        -Dsonar.sources=. \
-                        -Dsonar.host.url=http://15.206.0.203:9000
-                    '''
-                    // running the command: docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' sonarqube to find sonarqube ip.                     
+                        $SCANNAR_HOME/bin/sonar-scanner \
+                            -Dsonar.projectKey=Netflix \
+                            -Dsonar.projectName=Netflix \
+                            -Dsonar.sources=. \
+                            -Dsonar.host.url=http://65.0.39.254:9000
+                        '''
+                    // running the command: docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' sonarqube to find sonarqube ip.
                 }
             }
         }
-    }
-    stage('Quality Gate'){
-        steps{
-            dir('netflix'){
+        stage('Quality Gate'){
+            steps{
                 // The quality gate stage is used to pause the pipeline and wait for SonarQube’s analysis result,
                 // specifically checking if the Quality Gate is passed or failed.
                 // ************************************************************
-                // abortPipeline: false	-> If the quality gate fails, Jenkins will not abort the pipeline, it just logs the result.
+                // abortPipeline: false -> If the quality gate fails, Jenkins will not abort the pipeline, it just logs the result.
                 // (if false is changed to true the pipline will stop on failure.)
                 waitForQualityGate abortPipeline: false, credentialsId: 'sonar-token'
             }
         }
-    }
-    stage('Verify Workspace'){
-        steps{
-            dir('netflix'){
-                sh'pwd'
-                sh'ls'
+        stage('Install Dependencies') {
+            steps {
+                    sh 'npm install --include=dev'
             }
         }
-    }
-    stage('Install Dependencies'){
-        steps{
-            dir('netflix'){
-                sh "npm install"
+        stage('Fix Vulnerabilities') {
+            steps {
+                    sh 'npm install vite@^3.0.0'
+                    sh 'npm audit fix --force'
+                    sh 'npm audit --audit-level=high || true'
             }
         }
-    }
-    stage('OWASP FS SCAN'){
-        steps{
-            dir('netflix'){
-                // dependencyCheck: This is a special Jenkins step provided by the OWASP Dependency-Check Plugin. It will: 
+        stage('OWASP FS SCAN'){
+            steps{
+                // dependencyCheck: This is a special Jenkins step provided by the OWASP Dependency-Check Plugin. It will:
                 // Use the CLI scanner (from the configured tool named 'owasp-dependency-check'), Scan the current directory (--scan ./) and Skip Yarn and Node audit steps.
                 // odcInstallation: OWASP Dependency-Check tool.
                 dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'owasp-dependency-check'
                 // dependencyCheckPublisher: This takes the XML report generated from the scan and archives it.
                 // a “Dependency-Check Report” tab in the Jenkins job will be appear after the pipeline is finished.
-                dependencyCheckPublisher pattern: 'dependency-check-report.xml'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
-    }
-    stage('TRIVY FS scan'){
-        steps{
-            sh "trivy fs ./netflix > trivyfiles/trivyfs.txt"
+        stage('Check Trivy Installation') {
+            steps {
+                sh 'trivy --version || echo "Trivy not found"'
+            }
+        }
 
+        stage('Trivy FS Scan') {
+            steps {
+                    sh 'mkdir -p trivyfiles && trivy fs . > ../trivyfiles/trivyfs.txt'
+            }
         }
-    }
-    stage('Docker Build and Push img into local repo') {
-    steps {
-        dir('netflix') {
-            withDockerRegistry(credentialsId: 'docker-username', url: 'https://index.docker.io/v1/') {
-                sh '''
-                    docker build --build-arg TMDB_V3_API_KEY=616957b1221b87984af5b9edf7545682 -t walaahij/netflix:latest .
-                    docker push walaahij/netflix:latest
-                '''
+        stage('Docker Build and Push') {
+            steps {
+                    withCredentials([usernamePassword(credentialsId: 'docker-username', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh '''
+                            echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USER} --password-stdin
+                            docker build --build-arg TMDB_V3_API_KEY=616957b1221b87984af5b9edf7545682 -t walaahij/netflix:${BUILD_ID} .
+                            docker push walaahij/netflix:${BUILD_ID} || { echo "❌ Docker push failed"; exit 1; }
+                        '''
                 }
             }
         }
-    }
-    stage('TRIVY image scan'){
-        steps{
-            sh 'trivy image walaahij/netflix:latest > trivyfiles/trivyimage.txt'
-        }
-    }
-    stage('Deploy image into a Container'){
-        steps{
-            sh'docker run -d --name netflix -p 8000:80 walaahij/netflix:latest'
-        }
-    }
-    stage('Deploy netflix to K8s'){
-        steps{
-            dir('netflix/Kubernetes'){
-                withKubeConfig(credentialsId: 'k8s-creds'){
-                    sh '''
-                        # if netflix namespace does exist in the cluster the second command will fail the pipeline.
-                        # by adding the first command will check if the namespace does exist if it will skip the second command.
-                        kubectl get namespace netflix || kubectl create namespace netflix
-                        kubectl apply -f deployment.yaml -n netflix
-                        kubectl apply -f service.yaml -n netflix
-                    '''
-                }
+        stage('Trivy Image Scan') {
+            steps {
+                sh 'trivy image walaahij/netflix:${BUILD_ID} > trivyfiles/trivyimage.txt'
             }
         }
-    }
-    stage('Deploy Prometheus and Grafana into K8s'){
-        steps{
-            withKubeConfig(credentialsId: 'k8s-creds'){
+
+        stage('Run Locally') {
+            steps {
                 sh '''
-                    kubectl get namespace monitoring || kubectl create namespace monitoring
-                    helm upgrade --install monitoring-stack ./tools_repo/mychart -n monitoring || helm install monitoring-stack ./tools_repo/mychart -n monitoring
+                    docker rm -f netflix || true
+                    docker run -d --name netflix -p 8000:80 walaahij/netflix:${BUILD_ID}
                 '''
             }
         }
-    }
-  }
-    post {
-        always {
-            script {
-                if (env.WORKSPACE && fileExists(env.WORKSPACE)) {
-                    emailext attachLog: true,
-                        subject: "'${currentBuild.result}'",
-                        body: "Project: ${env.JOB_NAME}<br/>" +
-                            "Build Number: ${env.BUILD_NUMBER}<br/>" +
-                            "URL: ${env.BUILD_URL}<br/>",
-                        to: 'hijaziwalaa69@gmail.com',
-                        attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
-                } else {
-                    echo "Workspace not found, skipping email notification."
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                dir('Kubernetes') {
+                    withKubeConfig(credentialsId: 'k8s-creds') {
+                        sh '''
+                            kubectl delete service netflix-app -n netflix || true
+                            kubectl get namespace netflix || kubectl create namespace netflix
+                            kubectl apply -f deployment.yml -n netflix
+                            kubectl apply -f service.yml -n netflix
+                            kubectl rollout status deployment/netflix-app -n netflix --timeout=5m
+                            kubectl get pods -n netflix -o wide
+                        '''
+                    }
                 }
             }
         }
+
+        stage('Deploy Node Exporter') {
+            steps {
+                dir('node-exporter'){
+                    withKubeConfig(credentialsId: 'k8s-creds') {
+                        sh '''
+                            kubectl get namespace monitoring || kubectl create namespace monitoring
+                            kubectl apply -f node-exporter-deployment.yaml -n monitoring
+                            kubectl apply -f node-exporter-service.yaml -n monitoring
+                            kubectl get pods -n monitoring -o wide
+                        '''
+                    }
+                }
+            }
+        }
+    }
+   post {
+      always {
+        script {
+          if (env.WORKSPACE && fileExists("${env.WORKSPACE}/.")) {
+            emailext attachLog: true,
+              subject: "${currentBuild.result}",
+              body: """Project: ${env.JOB_NAME}<br/>
+                       Build Number: ${env.BUILD_NUMBER}<br/>
+                       URL: ${env.BUILD_URL}<br/>""",
+              to: 'hijaziwalaa69@gmail.com',
+              attachmentsPattern: 'trivy*.txt'
+          } else {
+            echo "Workspace not found, skipping email notification."
+          }
+        }
+      }
     }
 }
